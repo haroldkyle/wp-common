@@ -67,6 +67,9 @@ if (!class_exists('WP_Plugins_Abstract')) {
 		protected $donation_business_name;
 		protected $donation_item_name;
 		protected $broadcast_message;
+		protected $admin_css_handle;
+		protected $admin_css_url;
+
 
 		/**
 		* constructor
@@ -85,8 +88,11 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			$this->common_url = plugin_dir_url(__FILE__);
 			$this->common_dir = plugin_dir_path(__FILE__);
 
-			$this->plugin_url = str_replace ( self::common_slug , '', $this->comon_url );
+			$this->plugin_url = str_replace ( self::common_slug , '', $this->common_url );
 			$this->plugin_dir = str_replace ( self::common_slug , '', $this->common_dir );
+
+			$this->admin_css_handle = $this->plugin_constant . '-admin-css';
+			$this->admin_css_url = $this->common_url . 'wp-admin.css';
 
 			$this->plugin_file = $this->plugin_constant . '/' . $this->plugin_constant . '.php';
 			$this->plugin_version = $plugin_version;
@@ -236,14 +242,14 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			wp_enqueue_script ( "jquery-ui-slider" );
 
 			/* additional admin styling */
-			$css_handle = $this->plugin_constant . '-admin-css';
-			$css_file = $this->plugin_constant . '-admin.css';
-			if ( @file_exists ( $this->commond_dir . $css_file ) )
-			{
-				$css_src = $this->common_url . $css_file;
-				wp_register_style( $css_handle, $css_src, false, false, 'all' );
-				wp_enqueue_style( $css_handle );
-			}
+			//$css_handle = $this->plugin_constant . 'wp-admin-css';
+			//$css_file = $this->plugin_constant . 'wp-admin.css';
+			//if ( @file_exists ( $this->commond_dir . $css_file ) )
+			//{
+				//$css_src = $this->common_url . $css_file;
+				wp_register_style( $this->admin_css_handle, $this->admin_css_url, false, false, 'all' );
+				wp_enqueue_style( $this->admin_css_handle );
+			//}
 		}
 
 		/**
