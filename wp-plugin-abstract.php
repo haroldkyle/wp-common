@@ -3,13 +3,6 @@
  * abstract base class of WP-* plugins from hello@petermolnar.eu
  */
 
-if ( ! defined( 'WP_CONTENT_URL' ) )	define( 'WP_CONTENT_URL',	WP_SITEURL		. '/wp-content' );
-if ( ! defined( 'WP_CONTENT_DIR' ) )	define( 'WP_CONTENT_DIR',	ABSPATH			. 'wp-content' );
-if ( ! defined( 'WP_PLUGIN_URL' ) )		define( 'WP_PLUGIN_URL',	WP_CONTENT_URL	. '/plugins' );
-if ( ! defined( 'WP_PLUGIN_DIR' ) )		define( 'WP_PLUGIN_DIR',	WP_CONTENT_DIR	. '/plugins' );
-if ( ! defined( 'WPMU_PLUGIN_URL' ) )	define( 'WPMU_PLUGIN_URL',	WP_CONTENT_URL	. '/mu-plugins' );
-if ( ! defined( 'WPMU_PLUGIN_DIR' ) )	define( 'WPMU_PLUGIN_DIR',	WP_CONTENT_DIR	. '/mu-plugins' );
-
 if (!class_exists('WP_Plugins_Abstract')) {
 
 	/**
@@ -21,6 +14,8 @@ if (!class_exists('WP_Plugins_Abstract')) {
 	 * @var int $status Save, delete, neutral status storage
 	 * @var boolean $network true if plugin is Network Active
 	 * @var string $settings_link Link for settings page
+	 * @var string $common_url URL of plugin common files directory
+	 * @var string $common_dir Directory of plugin common files
 	 * @var string $plugin_url URL of plugin directory to be used with url-like includes
 	 * @var string $plugin_dir Directory of plugin to be used with standard includes
 	 * @var string $plugin_file Filename of main plugin PHP file
@@ -48,6 +43,7 @@ if (!class_exists('WP_Plugins_Abstract')) {
 		const slug_delete = '&deleted=true';
 		const broadcast_url = 'http://petermolnar.eu/broadcast/';
 		const donation_business_id = 'FA3NT7XDVHPWU';
+		const common_slug = '/wp-common';
 
 		protected $plugin_constant;
 		protected $options = array();
@@ -58,6 +54,8 @@ if (!class_exists('WP_Plugins_Abstract')) {
 		protected $settings_slug = '';
 		protected $plugin_url;
 		protected $plugin_dir;
+		protected $common_url;
+		protected $common_dir;
 		protected $plugin_file;
 		protected $plugin_name;
 		protected $plugin_version;
@@ -84,8 +82,12 @@ if (!class_exists('WP_Plugins_Abstract')) {
 
 			$this->plugin_constant = $plugin_constant;
 
-			$this->plugin_url = $this->replace_if_ssl ( WP_PLUGIN_URL ) . '/' . $this->plugin_constant . '/';
-			$this->plugin_dir = WP_PLUGIN_DIR. '/' . $this->plugin_constant . '/';
+			$this->common_url = plugin_dir_url(__FILE__);
+			$this->common_dir = plugin_dir_path(__FILE__);
+
+			$this->plugin_url = str_replace ( self::common_slug , '', $this->comon_url );
+			$this->plugin_dir = str_replace ( self::common_slug , '', $this->common_dir );
+
 			$this->plugin_file = $this->plugin_constant . '/' . $this->plugin_constant . '.php';
 			$this->plugin_version = $plugin_version;
 			$this->plugin_name = $plugin_name;
@@ -236,9 +238,9 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			/* additional admin styling */
 			$css_handle = $this->plugin_constant . '-admin-css';
 			$css_file = $this->plugin_constant . '-admin.css';
-			if ( @file_exists ( $this->plugin_dir . $css_file ) )
+			if ( @file_exists ( $this->commond_dir . $css_file ) )
 			{
-				$css_src = $this->plugin_url . $css_file;
+				$css_src = $this->common_url . $css_file;
 				wp_register_style( $css_handle, $css_src, false, false, 'all' );
 				wp_enqueue_style( $css_handle );
 			}
