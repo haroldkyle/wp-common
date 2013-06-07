@@ -5,6 +5,7 @@
 
 if (!class_exists('WP_Plugins_Abstract')) {
 
+	include_once ( 'wp-plugin-utilities.php' );
 	/**
 	 * abstract class for common, required functionalities
 	 *
@@ -69,6 +70,7 @@ if (!class_exists('WP_Plugins_Abstract')) {
 		protected $broadcast_message;
 		protected $admin_css_handle;
 		protected $admin_css_url;
+		protected $utilities;
 
 
 		/**
@@ -106,6 +108,8 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			$this->donation_business_name = 'PeterMolnar_WordPressPlugins_' . $this->plugin_constant . '_HU';
 			$this->donation_item_name = $this->plugin_name;
 
+			$this->utilities = WP_Plugins_Utilities::Utility();
+
 			/* we need network wide plugin check functions */
 			if ( ! function_exists( 'is_plugin_active_for_network' ) )
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -141,7 +145,7 @@ if (!class_exists('WP_Plugins_Abstract')) {
 		/**
 		 * uninstall hook function, to be extended
 		 */
-		abstract function plugin_uninstall();
+		abstract static function plugin_uninstall();
 
 		/**
 		 * first init hook function, to be extended, before options were read
@@ -242,25 +246,15 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			wp_enqueue_script ( "jquery-ui-slider" );
 
 			/* additional admin styling */
-			//$css_handle = $this->plugin_constant . 'wp-admin-css';
-			//$css_file = $this->plugin_constant . 'wp-admin.css';
-			//if ( @file_exists ( $this->commond_dir . $css_file ) )
-			//{
-				//$css_src = $this->common_url . $css_file;
-				wp_register_style( $this->admin_css_handle, $this->admin_css_url, false, false, 'all' );
-				wp_enqueue_style( $this->admin_css_handle );
-			//}
+			wp_register_style( $this->admin_css_handle, $this->admin_css_url, false, false, 'all' );
+			wp_enqueue_style( $this->admin_css_handle );
 		}
 
 		/**
 		 * deletes saved options from database
 		 */
 		protected function plugin_options_delete () {
-			/* get the currently saved options */
-			if ( $this->network )
-				delete_site_option( $this->plugin_constant );
-			else
-				delete_option( $this->plugin_constant );
+			$this->_delete_option ( $this->plugin_constant );
 
 			/* additional moves */
 			$this->plugin_hook_options_delete();
@@ -275,11 +269,7 @@ if (!class_exists('WP_Plugins_Abstract')) {
 		 * reads options stored in database and reads merges them with default values
 		 */
 		protected function plugin_options_read () {
-			/* get the currently saved options */
-			if ( $this->network )
-				$options = get_site_option( $this->plugin_constant );
-			else
-				$options = get_option( $this->plugin_constant );
+			$options = $this->_get_option( $this->plugin_constant );
 
 			/* this is the point to make any migrations from previous versions */
 			$this->plugin_hook_options_migrate( $options );
@@ -357,68 +347,13 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			$this->plugin_hook_options_save( $activating );
 
 			/* save options to database */
-			if ( $this->network )
-				update_site_option( $this->plugin_constant , $this->options );
-			else
-				update_option( $this->plugin_constant , $this->options );
+			$this->_update_option (  $this->plugin_constant , $this->options );
 		}
 
 		/**
 		 * hook to add functionality into plugin_options_save
 		 */
 		abstract function plugin_hook_options_save ( $activating );
-
-		/**
-		 * sends message to syslog
-		 *
-		 * @param string $message message to add besides basic info
-		 * @param int $log_level [optional] Level of log, info by default
-		 *
-		 */
-		protected function log ( $message, $log_level = LOG_INFO ) {
-
-			if ( @is_array( $message ) || @is_object ( $message ) )
-				$message = serialize($message);
-
-			if ( !isset ( $this->options['log'] ) || $this->options['log'] != 1 )
-				return false;
-
-			switch ( $log_level ) {
-				case LOG_ERR :
-					if ( function_exists( 'syslog' ) && function_exists ( 'openlog' ) ) {
-						openlog('wordpress('.$_SERVER['HTTP_HOST'].')',LOG_NDELAY|LOG_PERROR,LOG_SYSLOG);
-						syslog( $log_level , self::plugin_constant . $message );
-					}
-					/* error level is real problem, needs to be displayed on the admin panel */
-					//throw new Exception ( $message );
-				break;
-				default:
-					if ( function_exists( 'syslog' ) && function_exists ( 'openlog' ) && isset( $this->options['log_info'] ) && $this->options['log_info'] == 1 ) {
-						openlog('wordpress(' .$_SERVER['HTTP_HOST']. ')', LOG_NDELAY,LOG_SYSLOG);
-						syslog( $log_level, self::plugin_constant . $message );
-					}
-				break;
-			}
-
-		}
-
-		/**
-		 * replaces http:// with https:// in an url if server is currently running on https
-		 *
-		 * @param string $url URL to check
-		 *
-		 * @return string URL with correct protocol
-		 *
-		 */
-		protected function replace_if_ssl ( $url ) {
-			if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' )
-				$_SERVER['HTTPS'] = 'on';
-
-			if ( isset($_SERVER['HTTPS']) && (( strtolower($_SERVER['HTTPS']) == 'on' )  || ( $_SERVER['HTTPS'] == '1' ) ))
-				$url = str_replace ( 'http://' , 'https://' , $url );
-
-			return $url;
-		}
 
 		/**
 		 * function to easily print a variable
@@ -472,13 +407,7 @@ if (!class_exists('WP_Plugins_Abstract')) {
 		 *
 		 */
 		protected function print_select_options ( $elements, $current, $valid = false, $print = true ) {
-			/*
-			foreach ($elements as $value => $name ) : ?>
-				<option value="<?php echo $value ?>" <?php selected( $value , $current ); ?>>
-					<?php echo $name ; ?>
-				</option>
-			<?php endforeach;
-			*/
+
 			if ( is_array ( $valid ) )
 				$check_disabled = true;
 			else
@@ -554,5 +483,52 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			</form>
 			<?php
 		}
+
+		/**
+		 * log wrapper to include options
+		 *
+		 */
+		protected function log ( $message, $log_level = LOG_WARNING ) {
+			if ( !isset ( $this->options['log'] ) || $this->options['log'] != 1 )
+				return false;
+			else
+				$this->utilities->log ( $this->plugin_constant, $message, $log_level );
+		}
+
+		/**
+		 * option update; will handle network wide or standalone site options
+		 *
+		 */
+		protected function _update_option ( $optionID, $data ) {
+			if ( $this->network )
+				update_site_option( $optionID , $data );
+			else
+				update_option( $optionID , $data );
+		}
+
+		/**
+		 * read option; will handle network wide or standalone site options
+		 *
+		 */
+		protected function _get_option ( $optionID ) {
+			if ( $this->network )
+				$options = get_site_option( $optionID );
+			else
+				$options = get_option( $optionID );
+
+			return $options;
+		}
+
+		/**
+		 * clear option; will handle network wide or standalone site options
+		 *
+		 */
+		protected function _delete_option ( $optionID ) {
+			if ( $this->network )
+				delete_site_option( $optionID );
+			else
+				delete_option( $optionID );
+		}
+
 	}
 }
