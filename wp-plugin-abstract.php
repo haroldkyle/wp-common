@@ -164,6 +164,11 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 		abstract function plugin_admin_panel();
 
 		/**
+		 * admin help menu
+		 */
+		abstract function plugin_admin_help( $contextual_help, $screen_id );
+
+		/**
 		 * admin init called by WordPress add_action, needs to be public
 		 */
 		public function plugin_admin_init() {
@@ -226,7 +231,7 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 			else
 				add_action('admin_menu', array( &$this , 'plugin_admin_init') );
 
-
+			add_filter('contextual_help', array( &$this, 'plugin_admin_help' ), 10, 2);
 		}
 
 		/**

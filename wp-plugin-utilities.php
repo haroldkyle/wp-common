@@ -41,7 +41,8 @@ if (!class_exists('WP_Plugins_Utilities_v1')) {
 
 				switch ( $log_level ) {
 					case LOG_ERR:
-						trigger_error ( $identifier . " " . $message, E_USER_ERROR );
+						/* instead of E_USER_ERROR, we use warning, because ERROR would stop the script */
+						trigger_error ( $identifier . " " . $message, E_USER_WARNING );
 						break;
 					//case LOG_WARNING:
 					//	trigger_error ( $identifier . " " . $message, E_USER_WARNING );
