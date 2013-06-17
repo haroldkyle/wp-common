@@ -1,9 +1,10 @@
 <?php
 /**
  * abstract base class of WP-* plugins from hello@petermolnar.eu
+ * version 2
  */
 
-if (!class_exists('WP_Plugins_Abstract')) {
+if (!class_exists('WP_Plugins_Abstract_v2')) {
 
 	include_once ( 'wp-plugin-utilities.php' );
 	/**
@@ -38,7 +39,7 @@ if (!class_exists('WP_Plugins_Abstract')) {
 	 * @var string $broadcast_message Name of the file to get broadcast message from the web
 	 *
 	 */
-	abstract class WP_Plugins_Abstract {
+	abstract class WP_Plugins_Abstract_v2 {
 
 		const slug_save = '&saved=true';
 		const slug_delete = '&deleted=true';
@@ -108,7 +109,7 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			$this->donation_business_name = 'PeterMolnar_WordPressPlugins_' . $this->plugin_constant . '_HU';
 			$this->donation_item_name = $this->plugin_name;
 
-			$this->utilities = WP_Plugins_Utilities::Utility();
+			$this->utilities = WP_Plugins_Utilities_v1::Utility();
 
 			/* we need network wide plugin check functions */
 			if ( ! function_exists( 'is_plugin_active_for_network' ) )
@@ -208,9 +209,10 @@ if (!class_exists('WP_Plugins_Abstract')) {
 			/* setup plugin, plugin specific setup functions that need options */
 			$this->plugin_setup();
 
-			register_activation_hook( $this->plugin_file , 'plugin_activate' );
-			register_deactivation_hook( $this->plugin_file , 'plugin_deactivate' );
-			register_uninstall_hook( $this->plugin_file , 'plugin_uninstall' );
+			register_activation_hook( $this->plugin_file , array( &$this, 'plugin_activate' ) );
+			register_deactivation_hook( $this->plugin_file , array( &$this, 'plugin_deactivate' ) );
+			/* uninstall moved to external file */
+			//register_uninstall_hook( $this->plugin_file , array ( $this, 'plugin_uninstall' ) );
 
 			/* register settings pages */
 			if ( $this->network )

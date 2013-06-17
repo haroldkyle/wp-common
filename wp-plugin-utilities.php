@@ -1,15 +1,12 @@
 <?php
 /**
- * abstract utilities class of WP-* plugins from hello@petermolnar.eu
+ * utilities singleton class of WP-* plugins from hello@petermolnar.eu
+ * version 1
  */
 
-if (!class_exists('WP_Plugins_Utilities')) {
+if (!class_exists('WP_Plugins_Utilities_v1')) {
 
-	/**
-	 * abstract class for common, required functionalities
-	 *
-	 */
-	class WP_Plugins_Utilities {
+	class WP_Plugins_Utilities_v1 {
 
 		/**
 		 * Private ctor so nobody else can instance it
@@ -23,27 +20,25 @@ if (!class_exists('WP_Plugins_Utilities')) {
 		public static function Utility() {
 			static $inst = null;
 			if ($inst === null) {
-				$inst = new WP_Plugins_Utilities();
+				$inst = new WP_Plugins_Utilities_v1();
 			}
 			return $inst;
 		}
 
 		/**
-		 * sends message to syslog
+		 * standard log message
 		 *
+		 * @param string $identifier process identifier
 		 * @param string $message message to add besides basic info
-		 * @param int $log_level [optional] Level of log, info by default
+		 * @param int $log_level [optional] Level of log, warning by default
 		 *
 		 */
 		public function log ( $identifier, $message, $log_level = LOG_WARNING ) {
 
-			if ( @is_array( $message ) || @is_object ( $message ) )
-				$message = serialize($message);
-
-			//if ( !isset ( $this->options['log'] ) || $this->options['log'] != 1 )
-			//	return false;
-
 			if ( function_exists( 'trigger_error' ) ) {
+				if ( @is_array( $message ) || @is_object ( $message ) )
+					$message = serialize($message);
+
 				switch ( $log_level ) {
 					case LOG_ERR:
 						trigger_error ( $identifier . " " . $message, E_USER_ERROR );
@@ -52,10 +47,10 @@ if (!class_exists('WP_Plugins_Utilities')) {
 					//	trigger_error ( $identifier . " " . $message, E_USER_WARNING );
 					//	break;
 					default:
+						/* info level will only be fired if WP_DEBUG is active */
 						if ( WP_DEBUG == true ) trigger_error ( $identifier . " " . $message, E_USER_NOTICE );
 						break;
 				}
-
 			}
 
 		}
@@ -78,32 +73,31 @@ if (!class_exists('WP_Plugins_Utilities')) {
 			return $url;
 		}
 
+		/**
+		 * syslog log message
+		 *
+		 * @param string $identifier process identifier
+		 * @param string $message message to add besides basic info
+		 * @param int $log_level [optional] Level of log, info by default
+		 *
+		 */
+		public function syslog ( $identifier, $message, $log_level = LOG_INFO ) {
 
-		//protected function log ( $message, $log_level = LOG_INFO ) {
-		//
-		//	if ( @is_array( $message ) || @is_object ( $message ) )
-		//		$message = serialize($message);
-		//
-		//	if ( !isset ( $this->options['log'] ) || $this->options['log'] != 1 )
-		//		return false;
-		//
-		//	switch ( $log_level ) {
-		//		case LOG_ERR :
-		//			if ( function_exists( 'syslog' ) && function_exists ( 'openlog' ) ) {
-		//				openlog('wordpress('.$_SERVER['HTTP_HOST'].')',LOG_NDELAY|LOG_PERROR,LOG_SYSLOG);
-		//				syslog( $log_level , self::plugin_constant . $message );
-		//			}
-		//			/* error level is real problem, needs to be displayed on the admin panel */
-		//			//throw new Exception ( $message );
-		//		break;
-		//		default:
-		//			if ( function_exists( 'syslog' ) && function_exists ( 'openlog' ) && isset( $this->options['log_info'] ) && $this->options['log_info'] == 1 ) {
-		//				openlog('wordpress(' .$_SERVER['HTTP_HOST']. ')', LOG_NDELAY,LOG_SYSLOG);
-		//				syslog( $log_level, self::plugin_constant . $message );
-		//			}
-		//		break;
-		//	}
-		//
-		//}
+			if ( function_exists( 'syslog' ) && function_exists ( 'openlog' ) ) {
+				if ( @is_array( $message ) || @is_object ( $message ) )
+					$message = serialize($message);
+
+				switch ( $log_level ) {
+					case LOG_ERR :
+						openlog('wordpress('.$_SERVER['HTTP_HOST'].')',LOG_NDELAY|LOG_PERROR,LOG_SYSLOG);
+						break;
+					default:
+						openlog('wordpress(' .$_SERVER['HTTP_HOST']. ')', LOG_NDELAY,LOG_SYSLOG);
+						break;
+				}
+
+				syslog( $log_level , $identifier . $message );
+			}
+		}
 	}
 }
