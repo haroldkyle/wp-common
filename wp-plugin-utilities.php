@@ -11,8 +11,15 @@ if (!class_exists('WP_Plugins_Utilities_v1')) {
 		/**
 		 * Private ctor so nobody else can instance it
 		 *
+		 * fun lines from lnwdr.de
 		 */
-		private function __construct() { }
+		protected function __construct() {
+			//Thou shalt not construct that which is unconstructable!
+		}
+
+		protected function __clone() {
+			//Me not like clones! Me smash clones!
+		}
 
 		/**
 		 * Init singleton
