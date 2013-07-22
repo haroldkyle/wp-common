@@ -527,6 +527,19 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 		}
 
 		/**
+		 * read option; will handle network wide or standalone site options
+		 *
+		 */
+		protected function _site_url ( $path ) {
+			if ( $this->network )
+				$url = network_site_url( $path );
+			else
+				$url = site_url( $path );
+
+			return $this->utilities->replace_if_ssl( $path );
+		}
+
+		/**
 		 * clear option; will handle network wide or standalone site options
 		 *
 		 */
