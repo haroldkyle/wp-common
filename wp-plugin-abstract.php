@@ -530,13 +530,13 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 		 * read option; will handle network wide or standalone site options
 		 *
 		 */
-		protected function _site_url ( $path = '' ) {
-			if ( $this->network )
-				$url = network_site_url( $path );
+		protected function _site_url ( $site = '' ) {
+			if ( $this->network && !empty( $site ) )
+				$url = get_blog_option ( $site, 'siteurl' );
 			else
-				$url = site_url( $path );
+				$url = get_bloginfo ( 'url' );
 
-			return $this->utilities->replace_if_ssl( $path );
+			return $url;
 		}
 
 		/**
