@@ -4,7 +4,7 @@
  * version 2
  */
 
-if (!class_exists('WP_Plugins_Abstract_v2')) {
+if (!class_exists('WP_Plugins_Abstract_v3')) {
 
 	include_once ( 'wp-plugin-utilities.php' );
 	/**
@@ -31,19 +31,16 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 	 * @var int $capability Level of admin required to manage plugin settings
 	 * @var string $slug_save URL slug to present saved state
 	 * @var string $slug_delete URL slug to present delete state
-	 * @var string $broadcast_url URL base of broadcast messages
 	 * @var string donation_business_id Business ID for donation form
 	 * @var string $donation_business_name Business name for donation form
 	 * @var string $donation_item_name Donation item name for donation form
 	 * @var string donation_business_id Business ID for donation form
-	 * @var string $broadcast_message Name of the file to get broadcast message from the web
 	 *
 	 */
-	abstract class WP_Plugins_Abstract_v2 {
+	abstract class WP_Plugins_Abstract_v3 {
 
 		const slug_save = '&saved=true';
 		const slug_delete = '&deleted=true';
-		const broadcast_url = 'http://petermolnar.eu/broadcast/';
 		const donation_business_id = 'FA3NT7XDVHPWU';
 		const common_slug = '/wp-common';
 
@@ -68,7 +65,6 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 		protected $capability = 'manage_options';
 		protected $donation_business_name;
 		protected $donation_item_name;
-		protected $broadcast_message;
 		protected $admin_css_handle;
 		protected $admin_css_url;
 		protected $utilities;
@@ -105,7 +101,6 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 			$this->donation_link = $donation_link;
 			$this->button_save = $this->plugin_constant . '-save';
 			$this->button_delete = $this->plugin_constant . '-delete';
-			$this->broadcast_message = self::broadcast_url . $this->plugin_constant . '.message';
 			$this->donation_business_name = 'PeterMolnar_WordPressPlugins_' . $this->plugin_constant . '_HU';
 			$this->donation_item_name = $this->plugin_name;
 
@@ -189,9 +184,6 @@ if (!class_exists('WP_Plugins_Abstract_v2')) {
 
 			/* load additional moves */
 			$this->plugin_hook_admin_init();
-
-			/* get broadcast message, if available */
-			$this->broadcast_message = @file_get_contents( $this->broadcast_message );
 
 			/* add submenu to settings pages */
 			add_submenu_page( $this->settings_slug, $this->plugin_name . __( ' options' , $this->plugin_constant ), $this->plugin_name, $this->capability, $this->plugin_settings_page, array ( &$this , 'plugin_admin_panel' ) );
