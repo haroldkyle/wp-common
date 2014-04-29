@@ -499,10 +499,14 @@ if (!class_exists('WP_Plugins_Abstract_v3')) {
 		 *
 		 */
 		protected function _update_option ( $optionID, $data ) {
-			if ( $this->network )
+			if ( $this->network ) {
+				$this->log ( sprintf( __( 'updating network option %s', $this->plugin_constant ), $optionID ) );
 				update_site_option( $optionID , $data );
-			else
+			}
+			else {
+				$this->log ( sprintf( __( 'updating option %s', $this->plugin_constant ), $optionID ) );
 				update_option( $optionID , $data );
+			}
 		}
 
 		/**
@@ -510,12 +514,31 @@ if (!class_exists('WP_Plugins_Abstract_v3')) {
 		 *
 		 */
 		protected function _get_option ( $optionID ) {
-			if ( $this->network )
+			if ( $this->network ) {
+				$this->log ( sprintf( __( 'getting network option %s', $this->plugin_constant ), $optionID ) );
 				$options = get_site_option( $optionID );
-			else
+			}
+			else {
+				$this->log ( sprintf( __( 'getting option %s', $this->plugin_constant ), $optionID ) );
 				$options = get_option( $optionID );
+			}
 
 			return $options;
+		}
+
+		/**
+		 * clear option; will handle network wide or standalone site options
+		 *
+		 */
+		protected function _delete_option ( $optionID ) {
+			if ( $this->network ) {
+				$this->log ( sprintf( __( 'deleting network option %s', $this->plugin_constant ), $optionID ) );
+				delete_site_option( $optionID );
+			}
+			else {
+				$this->log ( sprintf( __( 'deleting option %s', $this->plugin_constant ), $optionID ) );
+				delete_option( $optionID );
+			}
 		}
 
 		/**
@@ -529,17 +552,6 @@ if (!class_exists('WP_Plugins_Abstract_v3')) {
 				$url = get_bloginfo ( 'url' );
 
 			return $url;
-		}
-
-		/**
-		 * clear option; will handle network wide or standalone site options
-		 *
-		 */
-		protected function _delete_option ( $optionID ) {
-			if ( $this->network )
-				delete_site_option( $optionID );
-			else
-				delete_option( $optionID );
 		}
 
 	}
