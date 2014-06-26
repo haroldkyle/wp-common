@@ -81,7 +81,7 @@ abstract class PluginAbstract {
 			$this->donation = true;
 		}
 
-		$this->utils = PluginUtils::S();
+		$this->utils =  new PluginUtils();
 
 		/* we need network wide plugin check functions */
 		if ( ! function_exists( 'is_plugin_active_for_network' ) )
@@ -248,7 +248,7 @@ abstract class PluginAbstract {
 				$options[$key] = $default;
 
 		/* removed unused keys, rare, but possible */
-		foreach ( array_keys ( $options ) as $key )
+		foreach ( @array_keys ( $options ) as $key )
 			if ( !@array_key_exists( $key, $this->defaults ) )
 				unset ( $options[$key] );
 

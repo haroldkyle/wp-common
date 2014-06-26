@@ -14,28 +14,7 @@ if ( !function_exists ('__translate__') ) {
 
 class PluginUtils {
 
-	/**
-	 * Private ctor so nobody else can instance it
-	 *
-	 * fun lines from lnwdr.de
-	 */
-	protected function __construct() {
-		//Thou shalt not construct that which is unconstructable!
-	}
-
-	protected function __clone() {
-		//Me not like clones! Me smash clones!
-	}
-
-	/**
-	 * Init singleton
-	 */
-	public static function S() {
-		static $inst = null;
-		if ($inst === null) {
-			$inst = new PluginUtils();
-		}
-		return $inst;
+	public function __construct() {
 	}
 
 	/* easily redefine serializer, if needed */
